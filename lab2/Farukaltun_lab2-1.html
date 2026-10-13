@@ -2,12 +2,10 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta charset="utf-8" />
+    <title>My First Map</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Global Earthquake Explorer | USGS</title>
-
-    <!-- Mapbox GL JS -->
     <link
         href="https://api.mapbox.com/mapbox-gl-js/v3.6.0/mapbox-gl.css"
         rel="stylesheet"
@@ -15,587 +13,179 @@
     <script src="https://api.mapbox.com/mapbox-gl-js/v3.6.0/mapbox-gl.js"></script>
 
     <style>
-        /* ==========================================
-           1. GLOBAL STYLES
-        ========================================== */
-
-        * {
-            box-sizing: border-box;
-        }
-
-        html,
         body {
-            width: 100%;
-            height: 100%;
             margin: 0;
             padding: 0;
-            font-family: Arial, Helvetica, sans-serif;
         }
-
-        /* ==========================================
-           2. MAP CONTAINER
-        ========================================== */
 
         #map {
             position: absolute;
-            inset: 0;
+            top: 0;
+            bottom: 0;
             width: 100%;
-            height: 100%;
         }
 
-        /* ==========================================
-           3. MAP TITLE PANEL
-        ========================================== */
-
-        #map-title {
-            position: absolute;
-            top: 20px;
-            left: 20px;
-            z-index: 10;
-
-            max-width: 320px;
-            padding: 16px 20px;
-
-            background: rgba(255, 255, 255, 0.94);
-            border-radius: 8px;
-
-            box-shadow: 0 3px 12px rgba(0, 0, 0, 0.18);
-        }
-
-        #map-title h1 {
-            margin: 0 0 8px;
-            font-size: 19px;
-            font-weight: 700;
-            color: #222;
-        }
-
-        #map-title p {
-            margin: 0;
-            font-size: 12px;
-            line-height: 1.5;
-            color: #555;
-        }
-
-        /* ==========================================
-           4. LEGEND PANEL
-        ========================================== */
-
+        /* Layout of the legend panel. */
         #legend {
             position: absolute;
-            bottom: 35px;
-            right: 20px;
-            z-index: 10;
-
-            width: 190px;
-            padding: 16px;
-
-            background: rgba(255, 255, 255, 0.95);
-            border-radius: 8px;
-
-            box-shadow: 0 3px 12px rgba(0, 0, 0, 0.18);
+            bottom: 0;
+            right: 0;
+            width: 110px;
+            background: #fff;
+            margin-right: 20px;
+            margin-bottom: 40px;
+            padding: 10px 20px 10px 10px;
+            border-radius: 3px;
+            text-align: center;
         }
 
-        .legend-title {
-            margin: 0 0 14px;
-            font-size: 15px;
-            font-weight: 700;
-            color: #222;
+        /* Each row for a magnitude value. */
+        .break {
+            position: relative;
+            margin: 0;
+            padding: 0;
         }
 
-        .legend-row {
-            display: flex;
-            align-items: center;
-            gap: 14px;
-
-            min-height: 44px;
-            margin-bottom: 8px;
-        }
-
-        .legend-symbol {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-
-            width: 42px;
-            height: 42px;
-            flex-shrink: 0;
-        }
-
-        .legend-circle {
-            display: block;
+        /* The circular symbol. */
+        .dot {
+            display: inline-block;
+            margin-top: 5px;
             border-radius: 50%;
-            opacity: 0.85;
-            border: 1px solid white;
+            opacity: 0.6;
         }
 
-        .legend-label {
-            font-size: 13px;
-            color: #333;
+        /* Label next to the symbol. */
+        .dot-label {
+            position: absolute;
+            top: 0;
+            right: 0;
+            font-style: italic;
         }
 
-        .legend-source {
-            margin-top: 14px;
-            padding-top: 10px;
-
-            border-top: 1px solid #ddd;
-
-            font-size: 11px;
-            color: #666;
-        }
-
-        .legend-source a {
-            color: #1769aa;
-            text-decoration: none;
-        }
-
-        .legend-source a:hover {
-            text-decoration: underline;
-        }
-
-        /* ==========================================
-           5. POPUP STYLES
-        ========================================== */
-
-        .earthquake-popup {
-            min-width: 190px;
-            font-family: Arial, Helvetica, sans-serif;
-        }
-
-        .earthquake-popup h3 {
-            margin: 0 0 10px;
-            font-size: 15px;
-            color: #222;
-        }
-
-        .earthquake-popup p {
-            margin: 6px 0;
-            font-size: 12px;
-            line-height: 1.5;
-            color: #444;
-        }
-
-        .earthquake-popup strong {
-            color: #222;
-        }
-
-        .earthquake-popup a {
-            color: #1769aa;
-            text-decoration: none;
-        }
-
-        .earthquake-popup a:hover {
-            text-decoration: underline;
-        }
-
-        /* ==========================================
-           6. RESPONSIVE DESIGN
-        ========================================== */
-
-        @media (max-width: 600px) {
-            #map-title {
-                top: 10px;
-                left: 10px;
-                right: 60px;
-
-                max-width: none;
-                padding: 12px 14px;
-            }
-
-            #map-title h1 {
-                font-size: 16px;
-            }
-
-            #map-title p {
-                font-size: 11px;
-            }
-
-            #legend {
-                right: 10px;
-                bottom: 30px;
-
-                width: 155px;
-                padding: 12px;
-            }
-
-            .legend-title {
-                font-size: 13px;
-            }
-
-            .legend-label {
-                font-size: 12px;
-            }
+        /* Link color within the legend. */
+        #legend a {
+            color: black;
         }
     </style>
 </head>
 
 <body>
-
-    <!-- ==========================================
-         MAP
-    ========================================== -->
-
-    <div id="map" aria-label="Interactive global earthquake map"></div>
-
-    <!-- ==========================================
-         MAP INFORMATION
-    ========================================== -->
-
-    <div id="map-title">
-        <h1>Global Earthquake Explorer</h1>
-        <p>
-            Earthquakes recorded worldwide during the past 30 days.
-            Circle size and color represent earthquake magnitude.
-        </p>
-    </div>
-
-    <!-- ==========================================
-         LEGEND
-    ========================================== -->
-
-    <div id="legend">
-        <h2 class="legend-title">Earthquake Magnitude</h2>
-        <div id="legend-content"></div>
-
-        <div class="legend-source">
-            Data source:
-            <a
-                href="https://earthquake.usgs.gov/earthquakes/"
-                target="_blank"
-                rel="noopener noreferrer"
-            >
-                USGS Earthquake Hazards Program
-            </a>
-        </div>
-    </div>
-
-    <!-- ==========================================
-         JAVASCRIPT
-    ========================================== -->
+    <div id="map"></div>
+    <div id="legend"></div>
 
     <script>
-        "use strict";
-
-        /* ==========================================
-           1. MAPBOX CONFIGURATION
-        ========================================== */
-
         mapboxgl.accessToken =
-            "pk.eyJ1IjoiZmFsdHVuIiwiYSI6ImNtdXgwZDJycTAzdWYzMHEzeTAyOWJlazAifQ.zJ_jK-CGtFRupxK45AgFqQ";
-
-        const MAP_STYLE =
-            "mapbox://styles/mapbox/satellite-streets-v12";
-
-        const EARTHQUAKE_DATA_URL =
-            "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_month.geojson";
-
-        /* ==========================================
-           2. INITIALIZE MAP
-        ========================================== */
+            'pk.eyJ1IjoiZmFsdHVuIiwiYSI6ImNtdXgwZDJycTAzdWYzMHEzeTAyOWJlazAifQ.zJ_jK-CGtFRupxK45AgFqQ';
 
         const mymap = new mapboxgl.Map({
-            container: "map",
-            style: MAP_STYLE,
-            projection: "globe",
-
+            container: 'map',
+            style: 'mapbox://styles/mapbox/satellite-streets-v12',
+            projection: 'globe',
             center: [-96, 37.8],
-            zoom: 1,
-
-            attributionControl: true
+            zoom: 1
         });
 
-        /* ==========================================
-           3. MAP NAVIGATION CONTROLS
-        ========================================== */
-
-        mymap.addControl(
-            new mapboxgl.NavigationControl({
-                showCompass: true,
-                showZoom: true,
-                visualizePitch: true
-            }),
-            "top-right"
-        );
-
-        /* ==========================================
-           4. GLOBE ATMOSPHERE
-        ========================================== */
-
-        mymap.on("style.load", () => {
+        // Add the next steps here, inside this script.
+        mymap.on('style.load', () => {
             mymap.setFog({});
         });
 
-        /* ==========================================
-           5. MAGNITUDE SCALE
-        ========================================== */
-
-        const magnitudeStops = [
-            [1.0,  0.7, "#fff7ec"],
-            [1.5,  2,   "#fee8c8"],
-            [2.0,  4,   "#fdd49e"],
-            [2.5,  5,   "#fdbb84"],
-            [3.0,  6,   "#fc8d59"],
-            [3.5,  7,   "#ef6548"],
-            [4.5,  9,   "#d7301f"],
-            [6.5,  15,  "#b30000"],
-            [8.5,  17,  "#7f0000"],
-            [10.5, 20,  "#000000"]
-        ];
-
-        /* ==========================================
-           6. EARTHQUAKE CIRCLE SIZES
-        ========================================== */
-
-        const circleRadiusExpression = [
-            "interpolate",
-            ["linear"],
-            ["to-number", ["get", "mag"], 0],
-
-            ...magnitudeStops.flatMap(stop => [
-                stop[0],
-                stop[1]
-            ])
-        ];
-
-        /* ==========================================
-           7. EARTHQUAKE CIRCLE COLORS
-        ========================================== */
-
-        const circleColorExpression = [
-            "interpolate",
-            ["linear"],
-            ["to-number", ["get", "mag"], 0],
-
-            ...magnitudeStops.flatMap(stop => [
-                stop[0],
-                stop[2]
-            ])
-        ];
-
-        /* ==========================================
-           8. LOAD EARTHQUAKE DATA
-        ========================================== */
-
-        mymap.on("load", () => {
-
-            // Add USGS GeoJSON source.
-            mymap.addSource("earthquakes", {
-                type: "geojson",
-                data: EARTHQUAKE_DATA_URL
+        mymap.on('load', () => {
+            mymap.addSource('earthquakes', {
+                type: 'geojson',
+                data: 'https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_month.geojson'
             });
 
-            // Add earthquake visualization layer.
             mymap.addLayer({
-                id: "earthquakes-layer",
-                type: "circle",
-                source: "earthquakes",
-
+                id: 'earthquakes-layer',
+                type: 'circle',
+                source: 'earthquakes',
                 paint: {
-                    "circle-radius": circleRadiusExpression,
+                    'circle-radius': [
+                        'interpolate',
+                        ['linear'],
+                        ['to-number', ['get', 'mag'], 0],
 
-                    "circle-color": circleColorExpression,
+                        1,    0.7,
+                        1.5,  2,
+                        2,    4,
+                        2.5,  5,
+                        3,    6,
+                        3.5,  7,
+                        4.5,  9,
+                        6.5,  15,
+                        8.5,  17,
+                        10.5, 20
+                    ],
 
-                    "circle-opacity": 0.75,
+                    'circle-stroke-width': 1,
 
-                    "circle-stroke-width": 1,
+                    'circle-color': [
+                        'interpolate',
+                        ['linear'],
+                        ['to-number', ['get', 'mag'], 0],
 
-                    "circle-stroke-color": "#ffffff",
+                        1,    '#fff7ec',
+                        1.5,  '#fee8c8',
+                        2,    '#fdd49e',
+                        2.5,  '#fdbb84',
+                        3,    '#fc8d59',
+                        3.5,  '#ef6548',
+                        4.5,  '#d7301f',
+                        6.5,  '#b30000',
+                        8.5,  '#7f0000',
+                        10.5, '#000000'
+                    ],
 
-                    "circle-stroke-opacity": 0.9
+                    'circle-stroke-color': 'white'
                 }
             });
-
         });
 
-        /* ==========================================
-           9. EARTHQUAKE POPUP
-        ========================================== */
+        mymap.on('click', 'earthquakes-layer', (event) => {
+            const feature = event.features[0];
+            const coordinates = feature.geometry.coordinates.slice(0, 2);
 
-        mymap.on("click", "earthquakes-layer", (event) => {
-
-            const feature = event.features?.[0];
-
-            if (!feature) {
-                return;
-            }
-
-            const properties = feature.properties || {};
-
-            const coordinates =
-                feature.geometry.coordinates.slice(0, 2);
-
-            // Normalize longitude for wrapped map views.
-            while (
-                Math.abs(event.lngLat.lng - coordinates[0]) > 180
-            ) {
-                coordinates[0] +=
-                    event.lngLat.lng > coordinates[0] ? 360 : -360;
-            }
-
-            const magnitude = Number(properties.mag);
-
-            const magnitudeText = Number.isFinite(magnitude)
-                ? magnitude.toFixed(1)
-                : "Unknown";
-
-            const location =
-                properties.place || "Unknown location";
-
-            const depth =
-                feature.geometry.coordinates[2];
-
-            const depthText = Number.isFinite(depth)
-                ? `${depth.toFixed(1)} km`
-                : "Unknown";
-
-            const eventTime = Number(properties.time);
-
-            const formattedDate = Number.isFinite(eventTime)
-                ? new Date(eventTime).toLocaleString()
-                : "Unknown";
-
-            /* ------------------------------------------
-               Build popup using DOM elements.
-               This avoids injecting external data as HTML.
-            ------------------------------------------ */
-
-            const popupContent = document.createElement("div");
-            popupContent.className = "earthquake-popup";
-
-            const heading = document.createElement("h3");
-            heading.textContent = `Magnitude ${magnitudeText}`;
-            popupContent.appendChild(heading);
-
-            function addPopupRow(label, value) {
-                const paragraph = document.createElement("p");
-
-                const strong = document.createElement("strong");
-                strong.textContent = `${label}: `;
-
-                paragraph.appendChild(strong);
-                paragraph.appendChild(
-                    document.createTextNode(String(value))
-                );
-
-                popupContent.appendChild(paragraph);
-            }
-
-            addPopupRow("Location", location);
-            addPopupRow("Depth", depthText);
-            addPopupRow("Date", formattedDate);
-
-            // Link to official USGS earthquake details.
-            if (
-                typeof properties.url === "string" &&
-                properties.url.startsWith(
-                    "https://earthquake.usgs.gov/"
-                )
-            ) {
-                const link = document.createElement("a");
-
-                link.href = properties.url;
-                link.target = "_blank";
-                link.rel = "noopener noreferrer";
-                link.textContent = "View USGS Details";
-
-                const linkParagraph =
-                    document.createElement("p");
-
-                linkParagraph.appendChild(link);
-                popupContent.appendChild(linkParagraph);
-            }
-
-            new mapboxgl.Popup({
-                closeButton: true,
-                closeOnClick: true,
-                maxWidth: "300px"
-            })
+            new mapboxgl.Popup()
                 .setLngLat(coordinates)
-                .setDOMContent(popupContent)
+                .setHTML(
+                    `<strong>Magnitude:</strong> ${feature.properties.mag}`
+                )
                 .addTo(mymap);
-
         });
 
-        /* ==========================================
-           10. INTERACTIVE CURSOR
-        ========================================== */
+        // Anchor the legend to the HTML element with id="legend".
+        const legend = document.getElementById('legend');
 
-        mymap.on("mouseenter", "earthquakes-layer", () => {
-            mymap.getCanvas().style.cursor = "pointer";
-        });
+        const grades = [2, 4.5, 8.5];
+        const radii = [4, 9, 17];
+        const colors = ['#fdd49e', '#d7301f', '#7f0000'];
+        const labels = ['<strong>Magnitude</strong>'];
 
-        mymap.on("mouseleave", "earthquakes-layer", () => {
-            mymap.getCanvas().style.cursor = "";
-        });
+        for (let i = 0; i < grades.length; i++) {
+            const value = grades[i];
+            const diameter = 2 * radii[i];
 
-        /* ==========================================
-           11. GENERATE LEGEND
-        ========================================== */
+            labels.push(
+                '<p class="break"><i class="dot" style="background:' +
+                colors[i] +
+                '; width:' +
+                diameter +
+                'px; height:' +
+                diameter +
+                'px;"></i> <span class="dot-label" style="top:' +
+                diameter / 2 +
+                'px;">' +
+                value +
+                '</span></p>'
+            );
+        }
 
-        const legendContent =
-            document.getElementById("legend-content");
+        const source =
+            '<p style="text-align:right; font-size:10pt;">Source: ' +
+            '<a href="https://earthquake.usgs.gov/earthquakes/">USGS</a></p>';
 
-        const legendGrades = [
-            {
-                magnitude: "2.0",
-                radius: 4,
-                color: "#fdd49e"
-            },
-            {
-                magnitude: "4.5",
-                radius: 9,
-                color: "#d7301f"
-            },
-            {
-                magnitude: "8.5",
-                radius: 17,
-                color: "#7f0000"
-            }
-        ];
-
-        legendGrades.forEach(item => {
-
-            // Legend row.
-            const row = document.createElement("div");
-            row.className = "legend-row";
-
-            // Symbol container.
-            const symbol = document.createElement("div");
-            symbol.className = "legend-symbol";
-
-            // Magnitude circle.
-            const circle = document.createElement("span");
-            circle.className = "legend-circle";
-
-            const diameter = item.radius * 2;
-
-            circle.style.width = `${diameter}px`;
-            circle.style.height = `${diameter}px`;
-            circle.style.backgroundColor = item.color;
-
-            symbol.appendChild(circle);
-
-            // Magnitude label.
-            const label = document.createElement("span");
-            label.className = "legend-label";
-            label.textContent = item.magnitude;
-
-            // Assemble legend row.
-            row.appendChild(symbol);
-            row.appendChild(label);
-
-            legendContent.appendChild(row);
-
-        });
-
-        /* ==========================================
-           12. MAP ERROR HANDLING
-        ========================================== */
-
-        mymap.on("error", (event) => {
-            console.error("Mapbox error:", event.error);
-        });
-
+        legend.innerHTML = labels.join('') + source;
     </script>
-
 </body>
 </html>
