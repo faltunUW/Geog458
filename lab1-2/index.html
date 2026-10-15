@@ -1,118 +1,74 @@
 <!DOCTYPE html>
-<!-- Declares this document as HTML5 so the browser uses standards mode when rendering the page. -->
+<!-- Use HTML for this page. -->
 <html lang='en'>
-<!-- Root element of the page; lang='en' tells browsers and screen readers the content is in English. -->
-
 <head>
-    <!-- The <head> holds information about the page and loads the resources the map needs before the body is drawn. -->
-
+    <!-- Set the text coding, tab title, and screen size. -->
     <meta charset='utf-8' />
-    <!-- Uses UTF-8 text encoding so place names and special characters on the map display correctly. -->
-
     <title>my First Map</title>
-    <!-- Text shown in the browser tab. -->
-
     <meta name='viewport' content='width=device-width, initial-scale=1' />
-    <!-- Makes the page width match the device screen so the map fits and is usable on phones and tablets. -->
 
-    <link href="https://api.mapbox.com/mapbox-gl-js/v3.6.0/mapbox-gl.css" rel="stylesheet">
-    <!-- Loads the Mapbox GL JS v3.6.0 stylesheet from the Mapbox CDN. It styles the map canvas, controls,
-         popups, and markers. Without it the controls appear unstyled and the map can render incorrectly. -->
-
-    <script src="https://api.mapbox.com/mapbox-gl-js/v3.6.0/mapbox-gl.js"></script>
-    <!-- Loads the Mapbox GL JS v3.6.0 JavaScript library from the CDN. This defines the global `mapboxgl`
-         object used below to create the map. It uses WebGL to draw vector tiles on the GPU in the browser. -->
-
+    <!-- Used v3.6.0 for both Mapbox files so the style setting is supported. -->
+    <script src='https://api.mapbox.com/mapbox-gl-js/v3.6.0/mapbox-gl.js'></script>
+    <link href='https://api.mapbox.com/mapbox-gl-js/v3.6.0/mapbox-gl.css' rel='stylesheet' /></script>
     <style>
-        /* CSS rules that control the layout of the page. */
-
+        /* Removes the page spacing and makes the map fill the window. */
         body { margin: 0; padding: 0; }
-        /* Removes the browser's default spacing around the page so the map can reach every edge of the window. */
-
         #map { position: absolute; top: 0; bottom: 0; width: 100%; }
-        /* Styles the element with id="map". Absolute positioning stretched from top: 0 to bottom: 0 with
-           width: 100% makes the map container fill the whole browser window. Mapbox draws the map at the size
-           of its container, so the container must have a real height or the map will be invisible. */
     </style>
 </head>
-
 <body>
-    <!-- The <body> holds the visible content of the page. -->
-
+    <!-- Mapbox draws the map inside this div. -->
     <div id='map'></div>
-    <!-- Empty container for the map. Mapbox GL JS finds this <div> by its id and inserts a <canvas>
-         element inside it, which is where the map tiles are actually drawn. -->
-
     <script>
-        // JavaScript that runs after the map container above exists on the page.
-
+        // Uses my public token to connect Mapbox requests to my account.
         mapboxgl.accessToken = 'pk.eyJ1IjoiZmFsdHVuIiwiYSI6ImNtdXgwZDJycTAzdWYzMHEzeTAyOWJlazAifQ.zJ_jK-CGtFRupxK45AgFqQ';
-        // Sets the public Mapbox access token (starts with "pk."). Every request the map makes to Mapbox for
-        // styles, vector tiles, and fonts includes this token so Mapbox can link the usage to my account.
-        // Public tokens are meant to be visible in browser code. Secret ("sk.") tokens must never be put here.
 
-        // Initialize the Mapbox map instance and render it inside the '#map' element.
+        // Creates the map and displays it inside the div with id='map'.
         const mymap = new mapboxgl.Map({
-            container: 'map',
-            // The id of the HTML element the map is drawn into (the <div id='map'> above).
-
+            container: 'map', // Match the map div's id.
+            // Part 3: comment these out to load Mapbox Standard with its defaults.
             // style: 'mapbox://styles/mapbox/light-v11',
-            // projection: 'globe', //Display the map as a globe since satellite-v9 defaults to Mercator
-            // Part 3: style and projection are commented out. When no style is given, Mapbox GL JS v3 loads the
-            // Mapbox Standard style, which supports the setConfigProperty() options used below. Without a
-            // projection setting, Standard uses its default projection (globe at low zoom, flat at city zoom).
+            // projection: 'globe',
 
+            // Part 2: these settings showed the UW Seattle campus.
             // center: [-122.3035, 47.6553],
             // zoom: 15,
-            // Part 2 "Your Turn": these values centered the map on the UW Seattle campus (near Red Square and
-            // Drumheller Fountain) at zoom 15, close enough to identify campus buildings.
 
-            center: [-122.3570, 47.6365],
-            // Initial center of the map in [longitude, latitude] order (longitude first, unlike most map apps).
-            // These coordinates point to the top of Queen Anne Hill, Seattle, my favorite neighborhood.
-
-            zoom: 14
-            // Initial zoom level. 0 shows the whole world; each level doubles the scale. At 14, streets,
-            // parks, and blocks of the neighborhood are visible.
+            center: [-122.3570, 47.6365], // Start at Queen Anne, Seattle: [longitude, latitude].
+            zoom: 14 // Show the neighborhood's streets and blocks.
         });
 
+        // Adds a button to enter or exit fullscreen.
         mymap.addControl(new mapboxgl.FullscreenControl());
-        // Adds a fullscreen button (top right by default). It uses the browser Fullscreen API to expand the
-        // map to the entire screen; clicking it again or pressing Esc returns to normal view.
 
+        // Adds zoom buttons and a compass that resets the map to north.
         mymap.addControl(new mapboxgl.NavigationControl());
-        // Adds zoom in (+) and zoom out (-) buttons and a compass. Clicking the compass resets the map's
-        // rotation to north-up; dragging it rotates and tilts the map.
 
-        // 'style.load' fires once the Standard style has finished loading. Configuration changes must wait for
-        // this event, because the basemap they modify does not exist until the style is loaded.
+        // Waits until the style loads before changing its settings.
         mymap.on('style.load', () => {
+            // setConfigProperty takes the style import id, setting name, and new value.
+            // 'basemap' is the Standard basemap; 'dusk' gives it evening lighting.
             mymap.setConfigProperty('basemap', 'lightPreset', 'dusk');
-            // setConfigProperty(importId, property, value) changes a setting of an imported style. 'basemap' is
-            // the id of the Mapbox Standard import. 'lightPreset' controls the global lighting and colors;
-            // 'dusk' gives the map evening light with darker tones and lit buildings.
 
+            // false hides point-of-interest labels, like shops and restaurants.
             mymap.setConfigProperty('basemap', 'showPointOfInterestLabels', false);
-            // Hides all point-of-interest icons and labels (restaurants, shops, etc.) to reduce clutter.
 
-            mymap.setConfigProperty('basemap', 'show3dObjects', false);
-            // Additional property 1: hides all 3D layers, including extruded buildings, landmarks, trees,
-            // and their shadows and lighting effects.
-            // Effect: the neighborhood is drawn as a flat 2D map, so the street grid and park shapes
-            // (such as Kerry Park and the Queen Anne Bowl) are not hidden behind buildings.
-            // When useful: for thematic maps where data layers (for example park access zones) are drawn on
-            // top of the basemap, when the map is viewed straight down, or on slower devices, because
-            // skipping 3D rendering makes the map lighter and faster to draw.
+            // Set the showPlaceLabels to true to show city and neighborhood names.
+            // These labels help us locate Queen Anne and nearby neighborhoods.
+            mymap.setConfigProperty('basemap', 'showPlaceLabels', true);
 
+            // Set the showTransitLabels to false to hide transit labels and icons.
+            // This leaves less symbols and it is useful for a map to be less crowded.
             mymap.setConfigProperty('basemap', 'showTransitLabels', false);
-            // Additional property 2: hides transit icons and labels (bus stops, light rail and train stations).
-            // Effect: removes the many small transit symbols scattered along streets, so the remaining place
-            // and road labels are easier to read.
-            // When useful: when the map's theme is not about transportation, for example a map focused on
-            // parks and green space, or when I plan to add my own transit data and want to avoid duplicate
-            // or conflicting symbols from the basemap.
+
+            // Set the show3dObjects to true to show 3D building.
+            // This helps show building with heightswhen exploring the map.
+            mymap.setConfigProperty('basemap', 'show3dObjects', true);
+
+            // Set font to Source Sans Pro to change the map's label lettering.
+            // Its simple letters are useful when keeping labels easy to read.
+            mymap.setConfigProperty('basemap', 'font',  'Source Sans Pro');
         });
     </script>
 </body>
-
 </html>
