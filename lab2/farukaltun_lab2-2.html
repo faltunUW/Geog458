@@ -220,7 +220,10 @@
             '<p style="text-align:right; font-size:10pt;">Source: ' +
             '<a href="https://www.naturalearthdata.com/downloads/10m-cultural-vectors/10m-populated-places/">Natural Earth</a></p>';
 
-        legend.innerHTML = labels.join('') + source;
+        const aiDisclosure =
+            '<p style="font-size:10pt;">AI disclosure: AI was used for code completion assistance.</p>';
+
+        legend.innerHTML = labels.join('') + source + aiDisclosure;
     </script>
 </body>
 </html>
