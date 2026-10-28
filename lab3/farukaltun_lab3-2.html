@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Lab 3: Cougar-Squak Mountain Elevation and Trails</title>
+  <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@6.15.0/dist/maplibre-gl.css">
+  <style>
+    body { margin: 0; font: 14px/1.5 Arial, sans-serif; color: #263b35; }
+    #map { position: absolute; inset: 0; }
+    #panel { position: absolute; top: 12px; left: 12px; padding: 16px;
+      width: 280px; max-width: calc(100% - 100px); background: white;
+      max-height: calc(100% - 80px); overflow: auto; border-radius: 6px; }
+    h1 { margin: 0 0 8px; font-size: 19px; }
+    p { margin: 8px 0; }
+    .ramp { height: 14px; background: linear-gradient(to right,
+      #edf8e9, #dce6a3, #e8c77b, #bd7041, #6b3a2a); }
+    .values { display: flex; justify-content: space-between; }
+    .trail-key { display: grid; grid-template-columns: 18px 1fr; gap: 5px 8px;
+      align-items: center; }
+    .trail-line { height: 4px; border: 1px solid white; }
+    .regional { background: #2166ac; }
+    .local { background: #006d6f; }
+    .maplibregl-popup-content { white-space: pre-line; }
+  </style>
+</head>
+<body>
+  <div id="map"></div>
+  <section id="panel">
+    <h1>Cougar-Squak Mountain Elevation and Trails</h1>
+    <p>USGS 3DEP and King County GIS | Accessed October 27, 2026</p>
+    <p>This map helps hikers compare trail locations with the surrounding terrain.</p>
+    <p id="status">Loading the local basemap, elevation, and trail data.</p>
+    <div id="surface-control">
+      <label><input id="show-surface" type="checkbox" checked> Show elevation</label>
+    </div>
+    <div id="trail-control">
+      <label><input id="show-trails" type="checkbox" checked> Show trails</label>
+    </div>
+    <div id="legend">
+      <p><strong>Elevation (meters)</strong></p>
+      <div class="ramp"></div>
+      <div class="values"><span>0</span><span>225</span><span>450</span><span>675</span><span>900</span></div>
+      <p><strong>Trail type</strong></p>
+      <div class="trail-key">
+        <span class="trail-line regional"></span><span>Regional trail</span>
+        <span class="trail-line local"></span><span>Local trail</span>
+      </div>
+    </div>
+  </section>
+
+  <script type="module">
+    import * as maplibregl from 'https://unpkg.com/maplibre-gl@6.15.0/dist/maplibre-gl.mjs';
+
+    const map = new maplibregl.Map({
+      container: 'map',
+      style: {
+        version: 8,
+        sources: {},
+        layers: [{ id: 'background', type: 'background',
+          paint: { 'background-color': '#edf1ec' } }]
+      },
+      center: [-122.08, 47.50],
+      zoom: 11,
+      minZoom: 8,
+      maxZoom: 12,
+      maxBounds: [[-122.20, 47.42], [-121.96, 47.58]]
+    });
+    map.addControl(new maplibregl.NavigationControl());
+    map.addControl(new maplibregl.ScaleControl({ unit: 'metric' }));
+
+    map.on('error', (event) => {
+      document.getElementById('status').textContent =
+        'Load error: check the file path and browser Console.';
+      console.error(event.error);
+    });
+
+    map.on('load', () => {
+      map.addSource('basemap-tiles', {
+        type: 'raster',
+        tiles: ['assets/mapbox-independent/{z}/{x}/{y}.png'],
+        tileSize: 256,
+        scheme: 'xyz',
+        minzoom: 8,
+        maxzoom: 12,
+        bounds: [-122.20, 47.42, -121.96, 47.58],
+        attribution: '© Mapbox © <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+      });
+      map.addLayer({
+        id: 'basemap',
+        type: 'raster',
+        source: 'basemap-tiles',
+        paint: { 'raster-opacity': 1, 'raster-fade-duration': 0 }
+      });
+
+      map.addSource('elevation-tiles', {
+        type: 'raster',
+        tiles: ['assets/elevation/{z}/{x}/{y}.png'],
+        tileSize: 256,
+        scheme: 'xyz',
+        minzoom: 8,
+        maxzoom: 12,
+        bounds: [-122.20, 47.42, -121.96, 47.58],
+        attribution: 'Elevation: USGS 3DEP; map by Faruk Altun'
+      });
+      map.addLayer({
+        id: 'elevation-surface',
+        type: 'raster',
+        source: 'elevation-tiles',
+        paint: { 'raster-opacity': 0.7, 'raster-fade-duration': 0 }
+      });
+
+      document.getElementById('show-surface').addEventListener('change', (event) => {
+        map.setLayoutProperty('elevation-surface', 'visibility',
+          event.target.checked ? 'visible' : 'none');
+      });
+
+      map.addSource('trail-data', {
+        type: 'geojson',
+        data: 'data/related_features.geojson',
+        attribution: 'Trails: King County GIS'
+      });
+      map.addLayer({
+        id: 'trail-casing',
+        type: 'line',
+        source: 'trail-data',
+        layout: {
+          'line-cap': 'round',
+          'line-join': 'round'
+        },
+        paint: {
+          'line-color': '#ffffff',
+          'line-width': [
+            'match', ['get', 'Trail_Type'],
+            'Trail (Regional)', 5,
+            4
+          ],
+          'line-opacity': 0.9
+        }
+      });
+      map.addLayer({
+        id: 'trails',
+        type: 'line',
+        source: 'trail-data',
+        layout: {
+          'line-cap': 'round',
+          'line-join': 'round'
+        },
+        paint: {
+          'line-color': [
+            'match', ['get', 'Trail_Type'],
+            'Trail (Regional)', '#2166ac',
+            '#006d6f'
+          ],
+          'line-width': [
+            'match', ['get', 'Trail_Type'],
+            'Trail (Regional)', 3,
+            2
+          ]
+        }
+      });
+
+      map.on('click', 'trails', (event) => {
+        const trail = event.features[0].properties;
+        new maplibregl.Popup()
+          .setLngLat(event.lngLat)
+          .setText([
+            trail.Trail_Name,
+            'Park or site: ' + trail.SiteName,
+            'Trail type: ' + trail.Trail_Type,
+            'Surface: ' + trail.Surf_Type,
+            'Owner: ' + trail.Owner
+          ].join('\n'))
+          .addTo(map);
+      });
+      map.on('mouseenter', 'trails', () => {
+        map.getCanvas().style.cursor = 'pointer';
+      });
+      map.on('mouseleave', 'trails', () => {
+        map.getCanvas().style.cursor = '';
+      });
+      document.getElementById('show-trails').addEventListener('change', (event) => {
+        const visibility = event.target.checked ? 'visible' : 'none';
+        map.setLayoutProperty('trail-casing', 'visibility', visibility);
+        map.setLayoutProperty('trails', 'visibility', visibility);
+      });
+
+      document.getElementById('status').textContent =
+        'Click a trail to see its name, surface, and owner.';
+    });
+  </script>
+</body>
+</html>
