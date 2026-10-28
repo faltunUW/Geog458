@@ -55,4 +55,4 @@ The raster tiles are pre-rendered snapshots. They support fast panning, zooming,
 
 ## AI use disclosure
 
-I was unable to attend the class sessions or quiz section because I was sick. I used AI assistance (ChatGPT 5.6 Sol-ExtraHigh) to help me work through and complete this assignment.
+I was unable to attend the class or quiz section because I was sick. I used AI assistance (ChatGPT 5.6 Sol-ExtraHigh) to help me work through and complete this assignment.
